@@ -1,0 +1,9 @@
+- launchers
+   - say hello
+      - command: echo "hello" | festival --tts
+      - icon: shebang.png
+   - say world
+      - command: echo "world" | festival --tts
+      - icon: shebang.png
+   - say date
+      - command: date | festival --tts
