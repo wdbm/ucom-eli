@@ -171,6 +171,7 @@ class interface(QtGui.QWidget):
             # add button widget
             vbox.addWidget(launcher.button)
             vbox.addStretch(1)
+
         self.setLayout(vbox)
 
         # window
