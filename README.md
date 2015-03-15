@@ -20,7 +20,9 @@ An example configuration file is included.
 
 ### docopt
 
-     sudo apt-get -y install python-docopt
+```Bash
+sudo apt-get -y install python-docopt
+```
 
 ### pyrecon
 

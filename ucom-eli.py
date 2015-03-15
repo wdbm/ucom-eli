@@ -35,26 +35,63 @@ Usage:
     program [options]
 
 Options:
-    -h, --help                 Show this help message.
-    --version                  Show the version and exit.
-    -c, --configuration=CONF   configuration [default: ~/.ucom]
+    -h, --help                display help message
+    --version                 display version and exit
+    --configuration=FILE      configuration              [default: ~/.ucom]
+    --foregroundcolor=COLOR   foreground color           [default: 3861aa ]
+    --backgroundcolor=COLOR   background color           [default: 000000 ]
+    --exitbutton=BOOL         include exit button        [default: true   ]
+    --windowframe=BOOL        include window frame       [default: false  ]
 """
 
-programName    = "UCOM-ELI"
-programVersion = "2014-09-15T2304"
+name    = "UCOM-ELI"
+version = "2015-03-15T2251Z"
+
+def smuggle(
+    moduleName = None,
+    URL        = None
+    ):
+    if moduleName is None:
+        moduleName = URL
+    try:
+        module = __import__(moduleName)
+        return(module)
+    except:
+        try:
+            moduleString = urllib.urlopen(URL).read()
+            module = imp.new_module("module")
+            exec moduleString in module.__dict__
+            return(module)
+        except: 
+            raise(
+                Exception(
+                    "module {moduleName} import error".format(
+                        moduleName = moduleName
+                    )
+                )
+            )
+            sys.exit()
 
 import os
 import sys
 import subprocess
 import time
 import logging
-from   docopt import docopt
-import pyrecon as pyrecon
-from   PyQt4 import QtGui, QtCore
+docopt = smuggle(
+    moduleName = "docopt",
+    URL = "https://rawgit.com/docopt/docopt/master/docopt.py"
+)
+pyrecon = smuggle(
+    moduleName = "pyrecon",
+    URL = "https://rawgit.com/wdbm/pyrecon/master/pyrecon.py"
+)
+from PyQt4 import QtGui, QtCore
 
 def main(options):
+
     global program
     program     = Program(options = options)
+
     application = QtGui.QApplication(sys.argv)
     interface1  = interface()
     sys.exit(application.exec_())
@@ -66,27 +103,37 @@ class Program(object):
         parent  = None,
         options = None
         ):
+
         # name
-        self.name    = programName
+        self.name    = name
+
         # options
         self.options = options
+
         # logging
         global logger
         logger = logging.getLogger(__name__)
         logging.basicConfig()
         logger.level = logging.INFO
-        logger.info("running {name}".format(name = self.name))
+        logger.info("run {name}".format(name = self.name))
+
         # configuration
         configurationFileName = self.options["--configuration"]
         self.configuration = pyrecon.openConfiguration(configurationFileName)
+
+        # settings
+        self.color1      = self.options["--foregroundcolor"]
+        self.color2      = self.options["--backgroundcolor"]
+        self.exitButton  = self.options["--exitbutton"].lower() == "true"
+        self.windowFrame = self.options["--windowframe"].lower() == "true"
 
 class Launcher(object):
 
     def __init__(
         self,
         name    = None,
-        command = None,
-        icon    = None,
+        command = ":",
+        icon    = "",
         button  = None,
         ):
         self.name         = name
@@ -101,10 +148,13 @@ class Launcher(object):
         # Set button style.
         self.button.setStyleSheet(
             """
-            color: yellow;
-            background-color: black;
-            border: 1px solid yellow;
-            """
+            color: #{color1};
+            background-color: #{color2};
+            border: 1px solid #{color1};
+            """.format(
+                color1 = program.color1,
+                color2 = program.color2
+            )
         )
         # Set button dimensions.
         self.button.setFixedSize(
@@ -126,10 +176,15 @@ class Launcher(object):
     def execute(
         self,
         ):
-        logger.info("executing launcher \"{name}\"".format(name = self.name))
-        #print self.command.split()
-        #subprocess.Popen(['bash', '-c'] + self.command.split())
-        os.system(self.command)
+        
+        if self.name == "exit":
+            logger.info("{name}".format(name = self.name))
+            sys.exit()
+        else:
+            logger.info("execute launcher \"{name}\"".format(name = self.name))
+            #print self.command.split()
+            #subprocess.Popen(['bash', '-c'] + self.command.split())
+            os.system(self.command)
         
 class interface(QtGui.QWidget):
 
@@ -142,7 +197,7 @@ class interface(QtGui.QWidget):
         # list of launchers.
         launchers = []
         for name, attributes in program.configuration["launchers"].iteritems():
-            logger.info("loading launcher \"{name}\"".format(name = name))
+            logger.info("load launcher \"{name}\"".format(name = name))
             # Cope with specification or no specification of the icon. If an
             # icon is specified, there is no button text set.
             if "icon" in attributes:
@@ -159,6 +214,15 @@ class interface(QtGui.QWidget):
                 command = command,
                 icon    = icon,
                 button  = button
+            )
+            launchers.append(launcher)
+
+        # Add an exit launcher.
+        if program.exitButton is True:
+            name = "exit"
+            launcher = Launcher(
+                name    = name,
+                button  = QtGui.QPushButton(name, self)
             )
             launchers.append(launcher)
 
@@ -180,14 +244,19 @@ class interface(QtGui.QWidget):
         self.move(0, 0)
         self.setStyleSheet(
             """
-            color: yellow;
-            background-color: black
-            """
+            color: #{color1};
+            background-color: #{color2}
+            """.format(
+                color1 = program.color1,
+                color2 = program.color2
+            )
         )
+        if program.windowFrame is False:
+            self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.show()
 
 if __name__ == "__main__":
-    options = docopt(__doc__)
+    options = docopt.docopt(__doc__)
     if options["--version"]:
         print(programVersion)
         exit()
