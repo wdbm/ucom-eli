@@ -38,14 +38,14 @@ Options:
     -h, --help                display help message
     --version                 display version and exit
     --configuration=FILE      configuration              [default: ~/.ucom]
-    --foregroundcolor=COLOR   foreground color           [default: 3861aa ]
-    --backgroundcolor=COLOR   background color           [default: 000000 ]
-    --exitbutton=BOOL         include exit button        [default: true   ]
-    --windowframe=BOOL        include window frame       [default: false  ]
+    --foregroundcolor=COLOR   foreground color           [default: 3861aa]
+    --backgroundcolor=COLOR   background color           [default: 000000]
+    --exitbutton=BOOL         include exit button        [default: true]
+    --windowframe=BOOL        include window frame       [default: false]
 """
 
 name    = "UCOM-ELI"
-version = "2015-03-15T2251Z"
+version = "2015-03-15T2312Z"
 
 def smuggle(
     moduleName = None,
