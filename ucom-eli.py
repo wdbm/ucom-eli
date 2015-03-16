@@ -45,7 +45,10 @@ Options:
 """
 
 name    = "UCOM-ELI"
-version = "2015-03-15T2312Z"
+version = "2015-03-16T2147Z"
+
+import imp
+import urllib
 
 def smuggle(
     moduleName = None,
