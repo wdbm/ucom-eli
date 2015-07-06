@@ -1,0 +1,7 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=ucom-eli
+Exec=python ucom-eli.py
+Terminal=false
+Type=Application
+Icon=spark.svg

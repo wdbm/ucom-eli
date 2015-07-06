@@ -10,8 +10,10 @@
    viewBox="0 0 48 48"
    id="svg2"
    version="1.1"
-   inkscape:version="0.91 r13725"
-   sodipodi:docname="shebang.svg">
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="shebang.svg"
+   width="100%"
+   height="100%">
   <metadata
      id="metadata65">
     <rdf:RDF>
@@ -26,15 +28,15 @@
   </metadata>
   <sodipodi:namedview
      pagecolor="#ffffff"
-     bordercolor="#666666"
+     bordercolor="#3861aa"
      borderopacity="1"
      objecttolerance="10"
      gridtolerance="10"
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="927"
-     inkscape:window-height="1028"
+     inkscape:window-width="1855"
+     inkscape:window-height="1056"
      id="namedview63"
      showgrid="false"
      inkscape:zoom="9.8333335"
@@ -42,7 +44,7 @@
      inkscape:cy="25.424341"
      inkscape:window-x="65"
      inkscape:window-y="24"
-     inkscape:window-maximized="0"
+     inkscape:window-maximized="1"
      inkscape:current-layer="svg2"
      inkscape:snap-text-baseline="false" />
   <defs
@@ -54,12 +56,12 @@
        gradientUnits="userSpaceOnUse"
        gradientTransform="matrix(0,-1,1,0,-1.5e-6,47.999998)">
       <stop
-         stop-color="#575757"
+         stop-color="#3861aa"
          stop-opacity="1"
          id="stop7" />
       <stop
          offset="1"
-         stop-color="#616161"
+         stop-color="#3861aa"
          stop-opacity="1"
          id="stop9" />
     </linearGradient>
@@ -71,7 +73,7 @@
         <path
            d="m -24 13 c 0 1.105 -0.672 2 -1.5 2 -0.828 0 -1.5 -0.895 -1.5 -2 0 -1.105 0.672 -2 1.5 -2 0.828 0 1.5 0.895 1.5 2 z"
            transform="matrix(15.333333,0,0,11.5,414.99999,878.8622)"
-           fill="#1890d0"
+           fill="#3861aa"
            id="path14" />
       </g>
     </clipPath>
@@ -83,18 +85,18 @@
         <path
            d="m -24 13 c 0 1.105 -0.672 2 -1.5 2 -0.828 0 -1.5 -0.895 -1.5 -2 0 -1.105 0.672 -2 1.5 -2 0.828 0 1.5 0.895 1.5 2 z"
            transform="matrix(15.333333,0,0,11.5,414.99999,878.8622)"
-           fill="#1890d0"
+           fill="#3861aa"
            id="path19" />
       </g>
     </clipPath>
   </defs>
   <g
      id="g29"
-     style="fill:#0055a0;fill-opacity:1">
+     style="fill:#3861aa;fill-opacity:1">
     <path
        d="m 24 1 c 12.703 0 23 10.297 23 23 c 0 12.703 -10.297 23 -23 23 -12.703 0 -23 -10.297 -23 -23 0 -12.703 10.297 -23 23 -23 z"
        id="path31"
-       style="fill:#0055a0;fill-opacity:1"
+       style="fill:#3861aa;fill-opacity:1"
        fill-opacity="1"
        fill="url(#linearGradient3764)" />
   </g>
@@ -113,14 +115,14 @@
        y="32.135593" /></text>
   <text
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-     x="6.1016936"
-     y="33.050846"
+     style="font-size:40px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Webdings;-inkscape-font-specification:Webdings"
+     x="13.932201"
+     y="34.474575"
      id="text4175"
      sodipodi:linespacing="125%"><tspan
        sodipodi:role="line"
        id="tspan4177"
-       x="6.1016936"
-       y="33.050846"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:27.5px;line-height:125%;font-family:'Droid Sans Mono';-inkscape-font-specification:'Droid Sans Mono, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff">#!</tspan></text>
+       x="13.932201"
+       y="34.474575"
+       style="font-size:27.5px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;font-family:Webdings;-inkscape-font-specification:Webdings">⚡</tspan></text>
 </svg>
