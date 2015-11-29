@@ -1,6 +1,6 @@
 # UCOM-ELI
 
-## introduction
+# introduction
 
 UCOM-ELI is an ergonomic launcher interface. It is launchers displayed as buttons with icons or text. Launchers are configured by a Markdown list of the following form:
 
@@ -16,14 +16,8 @@ UCOM-ELI is an ergonomic launcher interface. It is launchers displayed as button
 
 An example configuration file is included.
 
-## prerequisites
+# prerequisites
 
-### docopt
-
-```Bash
-sudo apt-get -y install python-docopt
-```
-
-### pyrecon
+## pyrecon
 
 - [pyrecon](https://github.com/wdbm/pyrecon)

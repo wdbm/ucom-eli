@@ -1,7 +1,9 @@
+#!/usr/bin/env xdg-open
+
 [Desktop Entry]
 Encoding=UTF-8
 Name=ucom-eli
 Exec=python ucom-eli.py
+Icon=/usr/share/ucom/CERN-alias/icons/spark.svg
 Terminal=false
 Type=Application
-Icon=spark.svg

@@ -23,7 +23,7 @@
 #                                                                              #
 # This program is distributed in the hope that it will be useful, but WITHOUT  #
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or        #
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for    #
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for     #
 # more details.                                                                #
 #                                                                              #
 # For a copy of the GNU General Public License, see                            #
@@ -35,17 +35,17 @@ Usage:
     program [options]
 
 Options:
-    -h, --help                display help message
-    --version                 display version and exit
-    --configuration=FILE      configuration              [default: ~/.ucom]
-    --foregroundcolor=COLOR   foreground color           [default: 3861aa]
-    --backgroundcolor=COLOR   background color           [default: 000000]
-    --exitbutton=BOOL         include exit button        [default: true]
-    --windowframe=BOOL        include window frame       [default: false]
+    -h, --help               display help message
+    --version                display version and exit
+    --configuration=FILE     configuration             [default: ~/.ucom]
+    --foregroundcolor=COLOR  foreground color          [default: 3861aa]
+    --backgroundcolor=COLOR  background color          [default: 000000]
+    --exitbutton=BOOL        include exit button       [default: true]
+    --windowframe=BOOL       include window frame      [default: false]
 """
 
 name    = "UCOM-ELI"
-version = "2015-03-16T2147Z"
+version = "2015-11-29T1926Z"
 
 import imp
 import urllib
@@ -193,7 +193,7 @@ class interface(QtGui.QWidget):
 
     def __init__(
         self,
-	    ):
+        ):
         super(interface, self).__init__()
 
         # Cycle over all launchers specified in the configuration, building a
