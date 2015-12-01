@@ -45,49 +45,15 @@ Options:
 """
 
 name    = "UCOM-ELI"
-version = "2015-11-29T1926Z"
-
-import imp
-import urllib
-
-def smuggle(
-    moduleName = None,
-    URL        = None
-    ):
-    if moduleName is None:
-        moduleName = URL
-    try:
-        module = __import__(moduleName)
-        return(module)
-    except:
-        try:
-            moduleString = urllib.urlopen(URL).read()
-            module = imp.new_module("module")
-            exec moduleString in module.__dict__
-            return(module)
-        except: 
-            raise(
-                Exception(
-                    "module {moduleName} import error".format(
-                        moduleName = moduleName
-                    )
-                )
-            )
-            sys.exit()
+version = "2015-12-01T0120Z"
 
 import os
 import sys
 import subprocess
 import time
 import logging
-docopt = smuggle(
-    moduleName = "docopt",
-    URL = "https://rawgit.com/docopt/docopt/master/docopt.py"
-)
-pyrecon = smuggle(
-    moduleName = "pyrecon",
-    URL = "https://rawgit.com/wdbm/pyrecon/master/pyrecon.py"
-)
+import docopt
+import pyrecon
 from PyQt4 import QtGui, QtCore
 
 def main(options):
@@ -121,8 +87,10 @@ class Program(object):
         logger.info("run {name}".format(name = self.name))
 
         # configuration
-        configurationFileName = self.options["--configuration"]
-        self.configuration = pyrecon.openConfiguration(configurationFileName)
+        configuration_filename = self.options["--configuration"]
+        self.configuration = pyrecon.open_configuration(
+            filename = configuration_filename
+        )
 
         # settings
         self.color1      = self.options["--foregroundcolor"]
