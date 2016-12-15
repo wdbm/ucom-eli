@@ -1,6 +1,6 @@
 # UCOM-ELI
 
-![](ucom-eli.py)
+![](ucom-eli.png)
 
 # introduction
 
