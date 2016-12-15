@@ -1,5 +1,7 @@
 # UCOM-ELI
 
+![](ucom-eli.py)
+
 # introduction
 
 UCOM-ELI is an ergonomic launcher interface. It is launchers displayed as buttons with icons or text. Launchers are configured by a Markdown list of the following form:
@@ -14,10 +16,6 @@ UCOM-ELI is an ergonomic launcher interface. It is launchers displayed as button
        - <launcher 3 name>
           - command: <launcher 3 command>
 
-An example configuration file is included.
+An example configuration file is included, which can be used in the following way:
 
-# prerequisites
-
-## pyrecon
-
-- [pyrecon](https://github.com/wdbm/pyrecon)
+    ./ucom-eli.py --configuration="configuration_example.md"

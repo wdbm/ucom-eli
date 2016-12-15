@@ -37,66 +37,57 @@ Usage:
 Options:
     -h, --help               display help message
     --version                display version and exit
-    --configuration=FILE     configuration             [default: ~/.ucom]
-    --foregroundcolor=COLOR  foreground color          [default: 3861aa]
-    --backgroundcolor=COLOR  background color          [default: 000000]
-    --exitbutton=BOOL        include exit button       [default: true]
-    --windowframe=BOOL       include window frame      [default: false]
+    -v, --verbose            verbose logging
+    -s, --silent             silent
+    -u, --username=USERNAME  username
+    --configuration=FILE     configuration          [default: ~/.ucom]
+    --foregroundcolor=COLOR  foreground color       [default: 3861aa]
+    --backgroundcolor=COLOR  background color       [default: 000000]
+    --exitbutton=BOOL        include exit button    [default: true]
+    --windowframe=BOOL       include window frame   [default: false]
+    --setposition=BOOL       set launcher position  [default: true]
 """
 
 name    = "UCOM-ELI"
-version = "2015-12-01T0120Z"
+version = "2016-12-15T2353Z"
+logo    = None
 
-import os
-import sys
-import subprocess
-import time
-import logging
 import docopt
-import pyrecon
+import logging
+import os
+import propyte
 from PyQt4 import QtGui, QtCore
+import pyrecon
+import subprocess
+import sys
+import time
 
 def main(options):
 
     global program
-    program     = Program(options = options)
+    program = propyte.Program(
+        options = options,
+        name    = name,
+        version = version,
+        logo    = logo
+    )
+    global log
+    from propyte import log
+
+    filename_configuration = options["--configuration"]
+    program.color_1        = options["--foregroundcolor"]
+    program.color_2        = options["--backgroundcolor"]
+    program.exit_button    = options["--exitbutton"].lower() == "true"
+    program.window_frame   = options["--windowframe"].lower() == "true"
+    program.set_position   = options["--setposition"].lower() == "true"
+    
+    program.configuration = pyrecon.open_configuration(
+        filename = filename_configuration
+    )
 
     application = QtGui.QApplication(sys.argv)
     interface1  = interface()
     sys.exit(application.exec_())
-
-class Program(object):
-
-    def __init__(
-        self,
-        parent  = None,
-        options = None
-        ):
-
-        # name
-        self.name    = name
-
-        # options
-        self.options = options
-
-        # logging
-        global logger
-        logger = logging.getLogger(__name__)
-        logging.basicConfig()
-        logger.level = logging.INFO
-        logger.info("run {name}".format(name = self.name))
-
-        # configuration
-        configuration_filename = self.options["--configuration"]
-        self.configuration = pyrecon.open_configuration(
-            filename = configuration_filename
-        )
-
-        # settings
-        self.color1      = self.options["--foregroundcolor"]
-        self.color2      = self.options["--backgroundcolor"]
-        self.exitButton  = self.options["--exitbutton"].lower() == "true"
-        self.windowFrame = self.options["--windowframe"].lower() == "true"
 
 class Launcher(object):
 
@@ -107,30 +98,30 @@ class Launcher(object):
         icon    = "",
         button  = None,
         ):
-        self.name         = name
-        self.command      = command
-        self.icon         = icon
-        self.iconWidth    = 54
-        self.iconHeight   = 54
-        self.button       = button
-        self.buttonWidth  = 60
-        self.buttonHeight = 60
+        self.name          = name
+        self.command       = command
+        self.icon          = icon
+        self.icon_width    = 54
+        self.icon_height   = 54
+        self.button        = button
+        self.button_width  = 60
+        self.button_height = 60
 
         # Set button style.
         self.button.setStyleSheet(
             """
-            color: #{color1};
-            background-color: #{color2};
-            border: 1px solid #{color1};
+            color: #{color_1};
+            background-color: #{color_2};
+            border: 1px solid #{color_1};
             """.format(
-                color1 = program.color1,
-                color2 = program.color2
+                color_1 = program.color_1,
+                color_2 = program.color_2
             )
         )
         # Set button dimensions.
         self.button.setFixedSize(
-            self.buttonWidth,
-            self.buttonHeight
+            self.button_width,
+            self.button_height
         )
         # Set button icon.
         self.button.setIcon(
@@ -138,8 +129,8 @@ class Launcher(object):
         )
         # Set button icon dimensions.
         self.button.setIconSize(QtCore.QSize(
-            self.iconWidth,
-            self.iconHeight
+            self.icon_width,
+            self.icon_height
         ))
         # Set button action.
         self.button.clicked.connect(lambda: self.execute())
@@ -147,13 +138,11 @@ class Launcher(object):
     def execute(
         self,
         ):
-        
         if self.name == "exit":
-            logger.info("{name}".format(name = self.name))
-            sys.exit()
+            program.terminate()
         else:
-            logger.info("execute launcher \"{name}\"".format(name = self.name))
-            #print self.command.split()
+            log.info("execute launcher \"{name}\"".format(name = self.name))
+            #print(self.command.split())
             #subprocess.Popen(['bash', '-c'] + self.command.split())
             os.system(self.command)
         
@@ -164,13 +153,13 @@ class interface(QtGui.QWidget):
         ):
         super(interface, self).__init__()
 
-        # Cycle over all launchers specified in the configuration, building a
+        # Loop over all launchers specified in the configuration, building a
         # list of launchers.
         launchers = []
         for name, attributes in program.configuration["launchers"].iteritems():
-            logger.info("load launcher \"{name}\"".format(name = name))
+            log.info("load launcher \"{name}\"".format(name = name))
             # Cope with specification or no specification of the icon. If an
-            # icon is specified, there is no button text set.
+            # icon is specified, set no button text.
             if "icon" in attributes:
                 icon = attributes["icon"]
                 button = QtGui.QPushButton(self)
@@ -189,11 +178,11 @@ class interface(QtGui.QWidget):
             launchers.append(launcher)
 
         # Add an exit launcher.
-        if program.exitButton is True:
+        if program.exit_button is True:
             name = "exit"
             launcher = Launcher(
-                name    = name,
-                button  = QtGui.QPushButton(name, self)
+                name   = name,
+                button = QtGui.QPushButton(name, self)
             )
             launchers.append(launcher)
 
@@ -201,7 +190,7 @@ class interface(QtGui.QWidget):
         vbox = QtGui.QVBoxLayout()
         vbox.addStretch(1)
 
-        # Cycle over all launchers, adding the launcher buttons to the layout.
+        # Loop over all launchers, adding the launcher buttons to the layout.
         for launcher in launchers:
             # add button widget
             vbox.addWidget(launcher.button)
@@ -212,17 +201,18 @@ class interface(QtGui.QWidget):
         # window
         self.setWindowTitle(program.name)
         # set window position
-        self.move(0, 0)
+        if program.set_position is True:
+            self.move(0, 0)
         self.setStyleSheet(
             """
-            color: #{color1};
-            background-color: #{color2}
+            color: #{color_1};
+            background-color: #{color_2}
             """.format(
-                color1 = program.color1,
-                color2 = program.color2
+                color_1 = program.color_1,
+                color_2 = program.color_2
             )
         )
-        if program.windowFrame is False:
+        if program.window_frame is False:
             self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.show()
 
