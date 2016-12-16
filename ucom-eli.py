@@ -49,7 +49,7 @@ Options:
 """
 
 name    = "UCOM-ELI"
-version = "2016-12-15T2353Z"
+version = "2016-12-16T1450Z"
 logo    = None
 
 import docopt
@@ -158,16 +158,34 @@ class interface(QtGui.QWidget):
         launchers = []
         for name, attributes in program.configuration["launchers"].iteritems():
             log.info("load launcher \"{name}\"".format(name = name))
-            # Cope with specification or no specification of the icon. If an
-            # icon is specified, set no button text.
-            if "icon" in attributes:
-                icon = attributes["icon"]
-                button = QtGui.QPushButton(self)
+            # If a launcher has a "desktop entry" file specification, accept it
+            # in preference to other specifications of the launcher.
+            if "desktop entry" not in attributes:
+                # Cope with specification or no specification of the icon. If an
+                # icon is specified, set no button text.
+                if "icon" in attributes:
+                    icon = attributes["icon"]
+                    button = QtGui.QPushButton(self)
+                else:
+                    icon = ""
+                    button = QtGui.QPushButton(name, self)
+                # Parse the command.
+                command = attributes["command"]
             else:
-                icon = ""
-                button = QtGui.QPushButton(name, self)
-            # Parse the command.
-            command = attributes["command"]
+                filename_desktop_entry = attributes["desktop entry"]
+                file_desktop_entry = open(filename_desktop_entry, "r")
+                for line in file_desktop_entry:
+                    if "Icon=" in line:
+                        icon = line.split("Icon=")[1].rstrip("\n")
+                    if "Exec=" in line:
+                        command = line.split("Exec=")[1].rstrip("\n")
+                # Cope with specification or no specification of the icon. If an
+                # icon is specified, set no button text.
+                if icon is not None:
+                    button = QtGui.QPushButton(self)
+                else:
+                    icon = ""
+                    button = QtGui.QPushButton(name, self)
             # Create the launcher.
             launcher = Launcher(
                 name    = name,
