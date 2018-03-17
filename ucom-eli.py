@@ -35,36 +35,40 @@ Usage:
     program [options]
 
 Options:
-    -h, --help               display help message
-    --version                display version and exit
-    -v, --verbose            verbose logging
-    -s, --silent             silent
-    -u, --username=USERNAME  username
-    --configuration=FILE     configuration            [default: ~/.ucom]
-    --foregroundcolor=COLOR  foreground color         [default: 3861aa]
-    --backgroundcolor=COLOR  background color         [default: 000000]
-    --paneltext=TEXT         panel text               [default: UCOM]
-    --exitbutton=BOOL        include exit button      [default: true]
-    --windowframe=BOOL       include window frame     [default: false]
-    --alwaysontop=BOOL       set always on top        [default: true]
-    --setposition=BOOL       set launcher position    [default: true]
-    --screennumber=NUMBER    set launch screen number [default: -1]
-"""
+    -h, --help                display help message
+    --version                 display version and exit
+    -v, --verbose             verbose logging
+    -s, --silent              silent
+    -u, --username=USERNAME   username
 
-name    = "UCOM-ELI"
-version = "2017-01-04T1326Z"
-logo    = None
+    --configuration=FILE      configuration            [default: ~/.ucom]
+
+    --foreground_color=COLOR  foreground color         [default: 3861aa]
+    --background_color=COLOR  background color         [default: 000000]
+    --panel_text=TEXT         panel text               [default: UCOM]
+    --close_button=BOOL       include close button     [default: true]
+    --power=BOOL              include power display    [default: false]
+    --window_frame=BOOL       include window frame     [default: false]
+    --always_on_top=BOOL      set always on top        [default: true]
+    --set_position=BOOL       set launcher position    [default: true]
+    --screen_number=NUMBER    set launch screen number [default: -1]
+"""
 
 import docopt
 import logging
 import os
-import propyte
-from PyQt4 import QtGui, QtCore
-import shijian
 import subprocess
 import sys
 import threading
 import time
+
+import propyte
+from PyQt4 import QtGui, QtCore
+import shijian
+
+name    = "UCOM-ELI"
+version = "2018-03-17T2113Z"
+logo    = None
 
 def main(options):
 
@@ -78,27 +82,24 @@ def main(options):
     global log
     from propyte import log
 
-    filename_configuration    = options["--configuration"]
-    program.color_1           = options["--foregroundcolor"]
-    program.color_2           = options["--backgroundcolor"]
-    program.panel_text        = options["--paneltext"]
-    program.exit_button       = options["--exitbutton"].lower() == "true"
-    program.window_frame      = options["--windowframe"].lower() == "true"
-    program.set_always_on_top = options["--alwaysontop"].lower() == "true"
-    program.set_position      = options["--setposition"].lower() == "true"
-    program.screen_number     = int(options["--screennumber"])
+    filename_configuration    =     options["--configuration"]
+    program.color_1           =     options["--foreground_color"]
+    program.color_2           =     options["--background_color"]
+    program.panel_text        =     options["--panel_text"]
+    program.close_button      =     options["--close_button"].lower()  == "true"
+    program.power             =     options["--power"].lower()         == "true"
+    program.window_frame      =     options["--window_frame"].lower()  == "true"
+    program.set_always_on_top =     options["--always_on_top"].lower() == "true"
+    program.set_position      =     options["--set_position"].lower()  == "true"
+    program.screen_number     = int(options["--screen_number"])
 
     if not os.path.isfile(os.path.expandvars(filename_configuration)):
-        log.fatal("file {filename} does not exist".format(
-            filename = filename_configuration
-        ))
+        log.fatal("file {filename} does not exist".format(filename = filename_configuration))
         program.terminate()
-    program.configuration = shijian.open_configuration(
-        filename = filename_configuration
-    )
+    program.configuration = shijian.open_configuration(filename = filename_configuration)
 
     application = QtGui.QApplication(sys.argv)
-    interface_1  = interface()
+    interface_1 = interface()
     interface_1.move(
         application.desktop().screenGeometry(program.screen_number).left(),
         application.desktop().screenGeometry(program.screen_number).top()
@@ -135,31 +136,25 @@ class Launcher(object):
             )
         )
         # Set button dimensions.
-        self.button.setFixedSize(
-            self.button_width,
-            self.button_height
-        )
+        self.button.setFixedSize(self.button_width, self.button_height)
         # Set button icon.
         self.button.setIcon(
             QtGui.QIcon(self.icon)
         )
         # Set button icon dimensions.
-        self.button.setIconSize(QtCore.QSize(
-            self.icon_width,
-            self.icon_height
-        ))
+        self.button.setIconSize(QtCore.QSize(self.icon_width, self.icon_height))
         # Set button action.
         self.button.clicked.connect(lambda: self.execute())
         
     def execute(
         self,
         ):
-        if self.name == "exit":
+        if self.name == "close":
             program.terminate()
         else:
             log.info("execute launcher \"{name}\"".format(name = self.name))
             #print(self.command.split())
-            #subprocess.Popen(['bash', '-c'] + self.command.split())
+            #subprocess.Popen(["bash", "-c"] + self.command.split())
             os.system(self.command)
         
 class interface(QtGui.QWidget):
@@ -168,17 +163,14 @@ class interface(QtGui.QWidget):
         self,
         ):
         super(interface, self).__init__()
-
         self.text_panel = QtGui.QLabel(program.panel_text)
-
-        self.indicator_percentage_power = QtGui.QLabel(self)
-
+        if program.power:
+            self.indicator_percentage_power = QtGui.QLabel(self)
         self.indicator_clock = QtGui.QLabel(self)
-
         # Loop over all launchers specified in the configuration, building a
         # list of launchers.
         launchers = []
-        for name, attributes in program.configuration["launchers"].iteritems():
+        for name, attributes in list(program.configuration["launchers"].items()):
             log.info("load launcher \"{name}\"".format(name = name))
             # If a launcher has a "desktop entry" file specification, accept it
             # in preference to other specifications of the launcher.
@@ -216,38 +208,31 @@ class interface(QtGui.QWidget):
                 button  = button
             )
             launchers.append(launcher)
-
-        # Add an exit launcher.
-        if program.exit_button is True:
-            name = "exit"
+        # Add an close launcher.
+        if program.close_button:
+            name = "close"
             launcher = Launcher(
                 name   = name,
                 button = QtGui.QPushButton(name, self)
             )
             launchers.append(launcher)
-
         # Set the layout.
         vbox = QtGui.QVBoxLayout()
         vbox.addStretch(1)
-
         if program.panel_text != "":
             vbox.addWidget(self.text_panel)
-
         # Loop over all launchers, adding the launcher buttons to the layout.
         for launcher in launchers:
             # add button widget
             vbox.addWidget(launcher.button)
             vbox.addStretch(1)
-
-        vbox.addStretch(1)
-        vbox.addWidget(self.indicator_percentage_power)
+        if program.power:
+            vbox.addStretch(1)
+            vbox.addWidget(self.indicator_percentage_power)
         vbox.addStretch(1)
         vbox.addWidget(self.indicator_clock)
-
         self.setLayout(vbox)
-
         self.font = QtGui.QFont("Arial", 8)
-
         self.setStyleSheet(
             """
             color: #{color_1};
@@ -257,7 +242,6 @@ class interface(QtGui.QWidget):
                 color_2 = program.color_2
             )
         )
-
         self.text_panel.setStyleSheet(
             """
             QLabel{{
@@ -272,30 +256,26 @@ class interface(QtGui.QWidget):
         )
         #self.text_panel.setFont(self.font)
         self.text_panel.setAlignment(QtCore.Qt.AlignCenter)
-        self.text_panel.setFixedSize(
-            60,
-            60
-        )
-
-        self.indicator_percentage_power.setStyleSheet(
-            """
-            QLabel{{
-                color: #{color_1};
-                background-color: #{color_2};
-                border: 1px solid #{color_1};
-            }}
-            """.format(
-                color_1 = program.color_1,
-                color_2 = program.color_2
+        if len(program.panel_text) <= 7:
+            self.text_panel.setFixedSize(60, 20)
+        else:
+            self.text_panel.setFixedSize(60, 60)
+        if program.power:
+            self.indicator_percentage_power.setStyleSheet(
+                """
+                QLabel{{
+                    color: #{color_1};
+                    background-color: #{color_2};
+                    border: 1px solid #{color_1};
+                }}
+                """.format(
+                    color_1 = program.color_1,
+                    color_2 = program.color_2
+                )
             )
-        )
-        #self.indicator_percentage_power.setFont(self.font)
-        self.indicator_percentage_power.setAlignment(QtCore.Qt.AlignCenter)
-        self.indicator_percentage_power.setFixedSize(
-            60,
-            60
-        )
-
+            #self.indicator_percentage_power.setFont(self.font)
+            self.indicator_percentage_power.setAlignment(QtCore.Qt.AlignCenter)
+            self.indicator_percentage_power.setFixedSize(60, 60)
         self.indicator_clock.setStyleSheet(
             """
             QLabel{{
@@ -310,32 +290,21 @@ class interface(QtGui.QWidget):
         )
         self.indicator_clock.setFont(self.font)
         self.indicator_clock.setAlignment(QtCore.Qt.AlignCenter)
-        self.indicator_clock.setFixedSize(
-            60,
-            60
-        )
-
+        self.indicator_clock.setFixedSize(60, 60)
         self.setWindowTitle(program.name)
-
         if program.set_always_on_top is True:
             self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         if program.window_frame is False:
             self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         if program.set_position is True:
             self.move(0, 0)
-
-        thread_percentage_power = threading.Thread(
-            target = self.percentage_power
-        )
-        thread_percentage_power.daemon = True
-        thread_percentage_power.start()
-
-        thread_clock = threading.Thread(
-            target = self.clock
-        )
+        if program.power:
+            thread_percentage_power = threading.Thread(target = self.percentage_power)
+            thread_percentage_power.daemon = True
+            thread_percentage_power.start()
+        thread_clock = threading.Thread(target = self.clock)
         thread_clock.daemon = True
         thread_clock.start()
-
         self.show()
 
     def percentage_power(
@@ -343,22 +312,16 @@ class interface(QtGui.QWidget):
         ):
         while True:
             percentage_power = shijian.percentage_power()
-            if percentage_power is None:
+            if not percentage_power:
                 percentage_power = "100%"
-            self.indicator_percentage_power.setText(
-                percentage_power
-            )
+            self.indicator_percentage_power.setText(percentage_power)
             time.sleep(30)
 
     def clock(
         self
         ):
         while True:
-            self.indicator_clock.setText(
-                shijian.time_UTC(
-                    style = "YYYY-MM-DD HH:MM:SS UTC"
-                ).replace(" ", "\n", 2)
-            )
+            self.indicator_clock.setText(shijian.time_UTC(style = "YYYY-MM-DD HH:MM:SS UTC").replace(" ", "\n", 2))
             time.sleep(1)
 
 if __name__ == "__main__":
