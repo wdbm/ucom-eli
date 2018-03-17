@@ -9,7 +9,7 @@ def main():
 
     setuptools.setup(
         name             = "ucom_eli",
-        version          = "2018.03.17.2113",
+        version          = "2018.03.17.2122",
         description      = "ergonomic launcher interface",
         long_description = long_description(),
         url              = "https://github.com/wdbm/ucom-eli",

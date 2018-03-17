@@ -67,7 +67,7 @@ from PyQt4 import QtGui, QtCore
 import shijian
 
 name    = "UCOM-ELI"
-version = "2018-03-17T2113Z"
+version = "2018-03-17T2122Z"
 logo    = None
 
 def main(options):
@@ -82,7 +82,7 @@ def main(options):
     global log
     from propyte import log
 
-    filename_configuration    =     options["--configuration"]
+    filepath_configuration    =     options["--configuration"]
     program.color_1           =     options["--foreground_color"]
     program.color_2           =     options["--background_color"]
     program.panel_text        =     options["--panel_text"]
@@ -93,10 +93,11 @@ def main(options):
     program.set_position      =     options["--set_position"].lower()  == "true"
     program.screen_number     = int(options["--screen_number"])
 
-    if not os.path.isfile(os.path.expandvars(filename_configuration)):
-        log.fatal("file {filename} does not exist".format(filename = filename_configuration))
+    filepath_configuration = os.path.expanduser(os.path.expandvars(filepath_configuration))
+    if not os.path.isfile(filepath_configuration):
+        log.fatal("file {filepath} not found".format(filepath = filepath_configuration))
         program.terminate()
-    program.configuration = shijian.open_configuration(filename = filename_configuration)
+    program.configuration = shijian.open_configuration(filename = filepath_configuration)
 
     application = QtGui.QApplication(sys.argv)
     interface_1 = interface()
@@ -186,8 +187,8 @@ class interface(QtGui.QWidget):
                 # Parse the command.
                 command = attributes["command"]
             else:
-                filename_desktop_entry = attributes["desktop entry"]
-                file_desktop_entry = open(filename_desktop_entry, "r")
+                filepath_desktop_entry = attributes["desktop entry"]
+                file_desktop_entry = open(filepath_desktop_entry, "r")
                 for line in file_desktop_entry:
                     if "Icon=" in line:
                         icon = line.split("Icon=")[1].rstrip("\n")
