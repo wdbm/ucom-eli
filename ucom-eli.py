@@ -27,7 +27,7 @@
 # more details.                                                                #
 #                                                                              #
 # For a copy of the GNU General Public License, see                            #
-# <http://www.gnu.org/licenses/>.                                              #
+# <http://www.gnu.org/licenses>.                                               #
 #                                                                              #
 ################################################################################
 
@@ -63,7 +63,24 @@ import threading
 import time
 
 import propyte
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets
+
+from PyQt5.QtCore import(
+    QSize,
+    Qt
+)
+from PyQt5.QtGui import(
+    QIcon,
+    QFont
+)
+from PyQt5.QtWidgets import(
+    QApplication,
+    QLabel,
+    QPushButton,
+    QWidget,
+    QVBoxLayout
+)
+
 import shijian
 
 name    = "UCOM-ELI"
@@ -95,11 +112,11 @@ def main(options):
 
     filepath_configuration = os.path.expanduser(os.path.expandvars(filepath_configuration))
     if not os.path.isfile(filepath_configuration):
-        log.fatal("file {filepath} not found".format(filepath = filepath_configuration))
+        log.fatal("file {filepath} not found".format(filepath=filepath_configuration))
         program.terminate()
-    program.configuration = shijian.open_configuration(filename = filepath_configuration)
+    program.configuration = shijian.open_configuration(filename=filepath_configuration)
 
-    application = QtGui.QApplication(sys.argv)
+    application = QApplication(sys.argv)
     interface_1 = interface()
     interface_1.move(
         application.desktop().screenGeometry(program.screen_number).left(),
@@ -140,10 +157,10 @@ class Launcher(object):
         self.button.setFixedSize(self.button_width, self.button_height)
         # Set button icon.
         self.button.setIcon(
-            QtGui.QIcon(self.icon)
+            QIcon(self.icon)
         )
         # Set button icon dimensions.
-        self.button.setIconSize(QtCore.QSize(self.icon_width, self.icon_height))
+        self.button.setIconSize(QSize(self.icon_width, self.icon_height))
         # Set button action.
         self.button.clicked.connect(lambda: self.execute())
         
@@ -153,26 +170,26 @@ class Launcher(object):
         if self.name == "close":
             program.terminate()
         else:
-            log.info("execute launcher \"{name}\"".format(name = self.name))
+            log.info("execute launcher \"{name}\"".format(name=self.name))
             #print(self.command.split())
             #subprocess.Popen(["bash", "-c"] + self.command.split())
             os.system(self.command)
         
-class interface(QtGui.QWidget):
+class interface(QWidget):
 
     def __init__(
         self,
         ):
         super(interface, self).__init__()
-        self.text_panel = QtGui.QLabel(program.panel_text)
+        self.text_panel = QLabel(program.panel_text)
         if program.power:
-            self.indicator_percentage_power = QtGui.QLabel(self)
-        self.indicator_clock = QtGui.QLabel(self)
+            self.indicator_percentage_power = QLabel(self)
+        self.indicator_clock = QLabel(self)
         # Loop over all launchers specified in the configuration, building a
         # list of launchers.
         launchers = []
         for name, attributes in list(program.configuration["launchers"].items()):
-            log.info("load launcher \"{name}\"".format(name = name))
+            log.info("load launcher \"{name}\"".format(name=name))
             # If a launcher has a "desktop entry" file specification, accept it
             # in preference to other specifications of the launcher.
             if "desktop entry" not in attributes:
@@ -180,10 +197,10 @@ class interface(QtGui.QWidget):
                 # icon is specified, set no button text.
                 if "icon" in attributes:
                     icon = attributes["icon"]
-                    button = QtGui.QPushButton(self)
+                    button = QPushButton(self)
                 else:
                     icon = ""
-                    button = QtGui.QPushButton(name, self)
+                    button = QPushButton(name, self)
                 # Parse the command.
                 command = attributes["command"]
             else:
@@ -197,10 +214,10 @@ class interface(QtGui.QWidget):
                 # Cope with specification or no specification of the icon. If an
                 # icon is specified, set no button text.
                 if icon is not None:
-                    button = QtGui.QPushButton(self)
+                    button = QPushButton(self)
                 else:
                     icon = ""
-                    button = QtGui.QPushButton(name, self)
+                    button = QPushButton(name, self)
             # Create the launcher.
             launcher = Launcher(
                 name    = name,
@@ -214,11 +231,11 @@ class interface(QtGui.QWidget):
             name = "close"
             launcher = Launcher(
                 name   = name,
-                button = QtGui.QPushButton(name, self)
+                button = QPushButton(name, self)
             )
             launchers.append(launcher)
         # Set the layout.
-        vbox = QtGui.QVBoxLayout()
+        vbox = QVBoxLayout()
         vbox.addStretch(1)
         if program.panel_text != "":
             vbox.addWidget(self.text_panel)
@@ -233,14 +250,14 @@ class interface(QtGui.QWidget):
         vbox.addStretch(1)
         vbox.addWidget(self.indicator_clock)
         self.setLayout(vbox)
-        self.font = QtGui.QFont("Arial", 8)
+        self.font = QFont("Arial", 8)
         self.setStyleSheet(
             """
             color: #{color_1};
             background-color: #{color_2}
             """.format(
-                color_1 = program.color_1,
-                color_2 = program.color_2
+                color_1=program.color_1,
+                color_2=program.color_2
             )
         )
         self.text_panel.setStyleSheet(
@@ -251,12 +268,12 @@ class interface(QtGui.QWidget):
                 border: 1px solid #{color_1};
             }}
             """.format(
-                color_1 = program.color_1,
-                color_2 = program.color_2
+                color_1=program.color_1,
+                color_2=program.color_2
             )
         )
         #self.text_panel.setFont(self.font)
-        self.text_panel.setAlignment(QtCore.Qt.AlignCenter)
+        self.text_panel.setAlignment(Qt.AlignCenter)
         if len(program.panel_text) <= 7:
             self.text_panel.setFixedSize(60, 20)
         else:
@@ -270,12 +287,12 @@ class interface(QtGui.QWidget):
                     border: 1px solid #{color_1};
                 }}
                 """.format(
-                    color_1 = program.color_1,
-                    color_2 = program.color_2
+                    color_1=program.color_1,
+                    color_2=program.color_2
                 )
             )
             #self.indicator_percentage_power.setFont(self.font)
-            self.indicator_percentage_power.setAlignment(QtCore.Qt.AlignCenter)
+            self.indicator_percentage_power.setAlignment(Qt.AlignCenter)
             self.indicator_percentage_power.setFixedSize(60, 60)
         self.indicator_clock.setStyleSheet(
             """
@@ -285,22 +302,22 @@ class interface(QtGui.QWidget):
                 border: 1px solid #{color_1};
             }}
             """.format(
-                color_1 = program.color_1,
-                color_2 = program.color_2
+                color_1=program.color_1,
+                color_2=program.color_2
             )
         )
         self.indicator_clock.setFont(self.font)
-        self.indicator_clock.setAlignment(QtCore.Qt.AlignCenter)
+        self.indicator_clock.setAlignment(Qt.AlignCenter)
         self.indicator_clock.setFixedSize(60, 60)
         self.setWindowTitle(program.name)
         if program.set_always_on_top is True:
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            self.setWindowFlags(Qt.WindowStaysOnTopHint)
         if program.window_frame is False:
-            self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+            self.setWindowFlags(Qt.FramelessWindowHint)
         if program.set_position is True:
             self.move(0, 0)
         if program.power:
-            thread_percentage_power = threading.Thread(target = self.percentage_power)
+            thread_percentage_power = threading.Thread(target=self.percentage_power)
             thread_percentage_power.daemon = True
             thread_percentage_power.start()
         thread_clock = threading.Thread(target = self.clock)
@@ -322,7 +339,7 @@ class interface(QtGui.QWidget):
         self
         ):
         while True:
-            self.indicator_clock.setText(shijian.time_UTC(style = "YYYY-MM-DD HH:MM:SS UTC").replace(" ", "\n", 2))
+            self.indicator_clock.setText(shijian.time_UTC(style="YYYY-MM-DD HH:MM:SS UTC").replace(" ", "\n", 2))
             time.sleep(1)
 
 if __name__ == "__main__":
