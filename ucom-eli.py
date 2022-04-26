@@ -83,7 +83,7 @@ import shijian
 import technicolor
 
 name        = "UCOM-ELI"
-__version__ = "2022-04-26T2238Z"
+__version__ = "2022-04-26T2328Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
@@ -109,6 +109,12 @@ def main(options):
     program.set_always_on_top =     options["--always_on_top"].lower()     == "true"
     program.set_position      =     options["--set_position"].lower()      == "true"
     program.screen_number     = int(options["--screen_number"])
+
+    program.icon_width        = 76
+    program.icon_height       = 76
+    program.button_width      = 90
+    program.button_height     = 90
+    program.font_size         = 12
 
     filepath_configuration = os.path.expanduser(os.path.expandvars(filepath_configuration))
     if not os.path.isfile(filepath_configuration):
@@ -136,11 +142,9 @@ class Launcher(object):
         self.name          = name
         self.command       = command
         self.icon          = icon
-        self.icon_width    = 54
-        self.icon_height   = 54
+
         self.button        = button
-        self.button_width  = 60
-        self.button_height = 60
+
 
         # Set button style.
         self.button.setStyleSheet(
@@ -154,13 +158,13 @@ class Launcher(object):
             )
         )
         # Set button dimensions.
-        self.button.setFixedSize(self.button_width, self.button_height)
+        self.button.setFixedSize(program.button_width, program.button_height)
         # Set button icon.
         self.button.setIcon(
             QIcon(self.icon)
         )
         # Set button icon dimensions.
-        self.button.setIconSize(QSize(self.icon_width, self.icon_height))
+        self.button.setIconSize(QSize(program.icon_width, program.icon_height))
         # Set button action.
         self.button.clicked.connect(lambda: self.execute())
         
@@ -206,11 +210,16 @@ class interface(QWidget):
             else:
                 filepath_desktop_entry = attributes["desktop entry"]
                 file_desktop_entry = open(filepath_desktop_entry, "r")
+                icon               = ""
+                command            = ""
+                desktop_entry_name = name
                 for line in file_desktop_entry:
                     if "Icon=" in line:
                         icon = line.split("Icon=")[1].rstrip("\n")
                     if "Exec=" in line:
                         command = line.split("Exec=")[1].rstrip("\n")
+                    if "Name=" in line:
+                        desktop_entry_name = line.split("Name=")[1].rstrip("\n")
                 # Cope with specification or no specification of the icon. If an
                 # icon is specified, set no button text.
                 if icon is not None:
@@ -218,9 +227,10 @@ class interface(QWidget):
                 else:
                     icon = ""
                     button = QPushButton(name, self)
+                button.setToolTip(desktop_entry_name)
             # Create the launcher.
             launcher = Launcher(
-                name    = name,
+                name    = desktop_entry_name,
                 command = command,
                 icon    = icon,
                 button  = button
@@ -251,7 +261,7 @@ class interface(QWidget):
         vbox.addStretch(1)
         vbox.addWidget(self.indicator_clock)
         self.setLayout(vbox)
-        self.font = QFont("Arial", 8)
+        self.font = QFont("Arial", program.font_size)
         self.setStyleSheet(
             """
             color: #{color_1};
@@ -276,9 +286,9 @@ class interface(QWidget):
         #self.text_panel.setFont(self.font)
         self.text_panel.setAlignment(Qt.AlignCenter)
         if len(program.panel_title) <= 7:
-            self.text_panel.setFixedSize(60, 20)
+            self.text_panel.setFixedSize(program.button_width, 20)
         else:
-            self.text_panel.setFixedSize(60, 60)
+            self.text_panel.setFixedSize(program.button_width, program.button_height)
         if program.power:
             self.indicator_percentage_power.setStyleSheet(
                 """
@@ -294,7 +304,7 @@ class interface(QWidget):
             )
             #self.indicator_percentage_power.setFont(self.font)
             self.indicator_percentage_power.setAlignment(Qt.AlignCenter)
-            self.indicator_percentage_power.setFixedSize(60, 60)
+            self.indicator_percentage_power.setFixedSize(program.button_width, program.button_height)
         self.indicator_clock.setStyleSheet(
             """
             QLabel{{
@@ -309,7 +319,7 @@ class interface(QWidget):
         )
         self.indicator_clock.setFont(self.font)
         self.indicator_clock.setAlignment(Qt.AlignCenter)
-        self.indicator_clock.setFixedSize(60, 60)
+        self.indicator_clock.setFixedSize(program.button_width, program.button_height)
         self.setWindowTitle(name)
         if program.set_always_on_top is True:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
@@ -332,7 +342,7 @@ class interface(QWidget):
         while True:
             percentage_power = shijian.percentage_power()
             if not percentage_power:
-                percentage_power = "100%"
+                percentage_power = "100 %"
             self.indicator_percentage_power.setText(percentage_power)
             time.sleep(30)
 
