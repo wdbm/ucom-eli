@@ -45,7 +45,8 @@ Options:
 
     --foreground_color=COLOR  foreground color         [default: 3861aa]
     --background_color=COLOR  background color         [default: 000000]
-    --panel_text=TEXT         panel text               [default: UCOM]
+    --panel_title=TEXT        panel title              [default: UCOM]
+    --hide_panel_title=BOOL   hide panel title         [default: true]
     --close_button=BOOL       include close button     [default: true]
     --power=BOOL              include power display    [default: false]
     --window_frame=BOOL       include window frame     [default: false]
@@ -62,9 +63,7 @@ import sys
 import threading
 import time
 
-import propyte
 from PyQt5 import QtGui, QtWidgets
-
 from PyQt5.QtCore import(
     QSize,
     Qt
@@ -80,34 +79,35 @@ from PyQt5.QtWidgets import(
     QWidget,
     QVBoxLayout
 )
-
 import shijian
+import technicolor
 
-name    = "UCOM-ELI"
-version = "2018-03-17T2122Z"
-logo    = None
+name        = "UCOM-ELI"
+__version__ = "2022-04-26T2238Z"
+
+log = logging.getLogger(name)
+log.addHandler(technicolor.ColorisingStreamHandler())
+log.setLevel(logging.DEBUG)
+
+
 
 def main(options):
 
+    class Program(object):
+        def __init():
+            return 0
     global program
-    program = propyte.Program(
-        options = options,
-        name    = name,
-        version = version,
-        logo    = logo
-    )
-    global log
-    from propyte import log
-
+    program = Program()
     filepath_configuration    =     options["--configuration"]
     program.color_1           =     options["--foreground_color"]
     program.color_2           =     options["--background_color"]
-    program.panel_text        =     options["--panel_text"]
-    program.close_button      =     options["--close_button"].lower()  == "true"
-    program.power             =     options["--power"].lower()         == "true"
-    program.window_frame      =     options["--window_frame"].lower()  == "true"
-    program.set_always_on_top =     options["--always_on_top"].lower() == "true"
-    program.set_position      =     options["--set_position"].lower()  == "true"
+    program.panel_title       =     options["--panel_title"]
+    program.hide_panel_title  =     options["--hide_panel_title"].lower()  == "true"
+    program.close_button      =     options["--close_button"].lower()      == "true"
+    program.power             =     options["--power"].lower()             == "true"
+    program.window_frame      =     options["--window_frame"].lower()      == "true"
+    program.set_always_on_top =     options["--always_on_top"].lower()     == "true"
+    program.set_position      =     options["--set_position"].lower()      == "true"
     program.screen_number     = int(options["--screen_number"])
 
     filepath_configuration = os.path.expanduser(os.path.expandvars(filepath_configuration))
@@ -168,7 +168,7 @@ class Launcher(object):
         self,
         ):
         if self.name == "close":
-            program.terminate()
+            sys.exit()
         else:
             log.info("execute launcher \"{name}\"".format(name=self.name))
             #print(self.command.split())
@@ -181,7 +181,7 @@ class interface(QWidget):
         self,
         ):
         super(interface, self).__init__()
-        self.text_panel = QLabel(program.panel_text)
+        self.text_panel = QLabel(program.panel_title)
         if program.power:
             self.indicator_percentage_power = QLabel(self)
         self.indicator_clock = QLabel(self)
@@ -237,8 +237,9 @@ class interface(QWidget):
         # Set the layout.
         vbox = QVBoxLayout()
         vbox.addStretch(1)
-        if program.panel_text != "":
-            vbox.addWidget(self.text_panel)
+        if not program.hide_panel_title:
+            if program.panel_title != "":
+                vbox.addWidget(self.text_panel)
         # Loop over all launchers, adding the launcher buttons to the layout.
         for launcher in launchers:
             # add button widget
@@ -274,7 +275,7 @@ class interface(QWidget):
         )
         #self.text_panel.setFont(self.font)
         self.text_panel.setAlignment(Qt.AlignCenter)
-        if len(program.panel_text) <= 7:
+        if len(program.panel_title) <= 7:
             self.text_panel.setFixedSize(60, 20)
         else:
             self.text_panel.setFixedSize(60, 60)
@@ -309,7 +310,7 @@ class interface(QWidget):
         self.indicator_clock.setFont(self.font)
         self.indicator_clock.setAlignment(Qt.AlignCenter)
         self.indicator_clock.setFixedSize(60, 60)
-        self.setWindowTitle(program.name)
+        self.setWindowTitle(name)
         if program.set_always_on_top is True:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
         if program.window_frame is False:
@@ -345,6 +346,6 @@ class interface(QWidget):
 if __name__ == "__main__":
     options = docopt.docopt(__doc__)
     if options["--version"]:
-        print(version)
+        print(__version__)
         exit()
     main(options)
