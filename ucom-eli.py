@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""
+'''
 ################################################################################
 #                                                                              #
 # UCOM-ELI                                                                     #
@@ -53,8 +53,9 @@ Options:
     --always_on_top=BOOL      set always on top        [default: true]
     --set_position=BOOL       set launcher position    [default: true]
     --screen_number=NUMBER    set launch screen number [default: -1]
-"""
+'''
 
+import datetime
 import docopt
 import logging
 import os
@@ -63,6 +64,7 @@ import sys
 import threading
 import time
 
+import psutil
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import(
     QSize,
@@ -81,15 +83,14 @@ from PyQt5.QtWidgets import(
 )
 import shijian
 import technicolor
+from Xlib.display import Display
 
-name        = "UCOM-ELI"
-__version__ = "2022-04-26T2328Z"
+name        = 'UCOM-ELI'
+__version__ = '2022-04-27T0259Z'
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
 log.setLevel(logging.DEBUG)
-
-
 
 def main(options):
 
@@ -98,33 +99,34 @@ def main(options):
             return 0
     global program
     program = Program()
-    filepath_configuration    =     options["--configuration"]
-    program.color_1           =     options["--foreground_color"]
-    program.color_2           =     options["--background_color"]
-    program.panel_title       =     options["--panel_title"]
-    program.hide_panel_title  =     options["--hide_panel_title"].lower()  == "true"
-    program.close_button      =     options["--close_button"].lower()      == "true"
-    program.power             =     options["--power"].lower()             == "true"
-    program.window_frame      =     options["--window_frame"].lower()      == "true"
-    program.set_always_on_top =     options["--always_on_top"].lower()     == "true"
-    program.set_position      =     options["--set_position"].lower()      == "true"
-    program.screen_number     = int(options["--screen_number"])
 
-    program.icon_width        = 76
-    program.icon_height       = 76
-    program.button_width      = 90
-    program.button_height     = 90
+    filepath_configuration    =     options['--configuration']
+    program.color_1           =     options['--foreground_color']
+    program.color_2           =     options['--background_color']
+    program.panel_title       =     options['--panel_title']
+    program.hide_panel_title  =     options['--hide_panel_title'].lower()  == 'true'
+    program.close_button      =     options['--close_button'].lower()      == 'true'
+    program.power             =     options['--power'].lower()             == 'true'
+    program.window_frame      =     options['--window_frame'].lower()      == 'true'
+    program.set_always_on_top =     options['--always_on_top'].lower()     == 'true'
+    program.set_position      =     options['--set_position'].lower()      == 'true'
+    program.screen_number     = int(options['--screen_number'])
+
+    program.icon_width        = 70
+    program.icon_height       = 70
+    program.button_width      = 85
+    program.button_height     = 85
     program.font_size         = 12
 
     filepath_configuration = os.path.expanduser(os.path.expandvars(filepath_configuration))
     if not os.path.isfile(filepath_configuration):
-        log.fatal("file {filepath} not found".format(filepath=filepath_configuration))
+        log.fatal(f'file {filepath_configuration} not found')
         program.terminate()
     program.configuration = shijian.open_configuration(filename=filepath_configuration)
 
     application = QApplication(sys.argv)
-    interface_1 = interface()
-    interface_1.move(
+    interface = Interface()
+    interface.move(
         application.desktop().screenGeometry(program.screen_number).left(),
         application.desktop().screenGeometry(program.screen_number).top()
     )
@@ -135,56 +137,44 @@ class Launcher(object):
     def __init__(
         self,
         name    = None,
-        command = ":",
-        icon    = "",
+        command = ':',
+        icon    = '',
         button  = None,
         ):
-        self.name          = name
-        self.command       = command
-        self.icon          = icon
-
-        self.button        = button
-
-
+        self.name    = name
+        self.command = command
+        self.icon    = icon
+        self.button  = button
         # Set button style.
         self.button.setStyleSheet(
-            """
-            color: #{color_1};
-            background-color: #{color_2};
-            border: 1px solid #{color_1};
-            """.format(
-                color_1 = program.color_1,
-                color_2 = program.color_2
-            )
+            f'''
+            color: #{program.color_1};
+            background-color: #{program.color_2};
+            border: 1px solid #{program.color_1};
+            '''
         )
         # Set button dimensions.
         self.button.setFixedSize(program.button_width, program.button_height)
         # Set button icon.
-        self.button.setIcon(
-            QIcon(self.icon)
-        )
+        self.button.setIcon(QIcon(self.icon))
         # Set button icon dimensions.
         self.button.setIconSize(QSize(program.icon_width, program.icon_height))
         # Set button action.
         self.button.clicked.connect(lambda: self.execute())
         
-    def execute(
-        self,
-        ):
-        if self.name == "close":
+    def execute(self):
+        if self.name == 'close':
             sys.exit()
         else:
-            log.info("execute launcher \"{name}\"".format(name=self.name))
+            log.info(f'execute launcher "{self.name}"')
             #print(self.command.split())
-            #subprocess.Popen(["bash", "-c"] + self.command.split())
+            #subprocess.Popen(['bash', '-c'] + self.command.split())
             os.system(self.command)
         
-class interface(QWidget):
+class Interface(QWidget):
 
-    def __init__(
-        self,
-        ):
-        super(interface, self).__init__()
+    def __init__(self):
+        super(Interface, self).__init__()
         self.text_panel = QLabel(program.panel_title)
         if program.power:
             self.indicator_percentage_power = QLabel(self)
@@ -192,40 +182,40 @@ class interface(QWidget):
         # Loop over all launchers specified in the configuration, building a
         # list of launchers.
         launchers = []
-        for name, attributes in list(program.configuration["launchers"].items()):
-            log.info("load launcher \"{name}\"".format(name=name))
+        for name, attributes in list(program.configuration['launchers'].items()):
+            log.info(f'load launcher "{name}"')
             # If a launcher has a "desktop entry" file specification, accept it
             # in preference to other specifications of the launcher.
-            if "desktop entry" not in attributes:
+            if 'desktop entry' not in attributes:
                 # Cope with specification or no specification of the icon. If an
                 # icon is specified, set no button text.
-                if "icon" in attributes:
-                    icon = attributes["icon"]
+                if 'icon' in attributes:
+                    icon = attributes['icon']
                     button = QPushButton(self)
                 else:
-                    icon = ""
+                    icon = ''
                     button = QPushButton(name, self)
                 # Parse the command.
-                command = attributes["command"]
+                command = attributes['command']
             else:
-                filepath_desktop_entry = attributes["desktop entry"]
-                file_desktop_entry = open(filepath_desktop_entry, "r")
-                icon               = ""
-                command            = ""
+                filepath_desktop_entry = attributes['desktop entry']
+                file_desktop_entry = open(filepath_desktop_entry, 'r')
+                icon               = ''
+                command            = ''
                 desktop_entry_name = name
                 for line in file_desktop_entry:
-                    if "Icon=" in line:
-                        icon = line.split("Icon=")[1].rstrip("\n")
-                    if "Exec=" in line:
-                        command = line.split("Exec=")[1].rstrip("\n")
-                    if "Name=" in line:
-                        desktop_entry_name = line.split("Name=")[1].rstrip("\n")
+                    if 'Icon=' in line:
+                        icon = line.split('Icon=')[1].rstrip('\n')
+                    if 'Exec=' in line:
+                        command = line.split('Exec=')[1].rstrip('\n')
+                    if 'Name=' in line:
+                        desktop_entry_name = line.split('Name=')[1].rstrip('\n')
                 # Cope with specification or no specification of the icon. If an
                 # icon is specified, set no button text.
                 if icon is not None:
                     button = QPushButton(self)
                 else:
-                    icon = ""
+                    icon = ''
                     button = QPushButton(name, self)
                 button.setToolTip(desktop_entry_name)
             # Create the launcher.
@@ -238,7 +228,7 @@ class interface(QWidget):
             launchers.append(launcher)
         # Add an close launcher.
         if program.close_button:
-            name = "close"
+            name = 'close'
             launcher = Launcher(
                 name   = name,
                 button = QPushButton(name, self)
@@ -248,7 +238,7 @@ class interface(QWidget):
         vbox = QVBoxLayout()
         vbox.addStretch(1)
         if not program.hide_panel_title:
-            if program.panel_title != "":
+            if program.panel_title != '':
                 vbox.addWidget(self.text_panel)
         # Loop over all launchers, adding the launcher buttons to the layout.
         for launcher in launchers:
@@ -261,27 +251,21 @@ class interface(QWidget):
         vbox.addStretch(1)
         vbox.addWidget(self.indicator_clock)
         self.setLayout(vbox)
-        self.font = QFont("Arial", program.font_size)
+        self.font = QFont('Arial', program.font_size)
         self.setStyleSheet(
-            """
-            color: #{color_1};
-            background-color: #{color_2}
-            """.format(
-                color_1=program.color_1,
-                color_2=program.color_2
-            )
+            f'''
+            color: #{program.color_1};
+            background-color: #{program.color_2}
+            '''
         )
         self.text_panel.setStyleSheet(
-            """
+            f'''
             QLabel{{
-                color: #{color_1};
-                background-color: #{color_2};
-                border: 1px solid #{color_1};
+                color: #{program.color_1};
+                background-color: #{program.color_2};
+                border: 1px solid #{program.color_1};
             }}
-            """.format(
-                color_1=program.color_1,
-                color_2=program.color_2
-            )
+            '''
         )
         #self.text_panel.setFont(self.font)
         self.text_panel.setAlignment(Qt.AlignCenter)
@@ -291,71 +275,100 @@ class interface(QWidget):
             self.text_panel.setFixedSize(program.button_width, program.button_height)
         if program.power:
             self.indicator_percentage_power.setStyleSheet(
-                """
+                f'''
                 QLabel{{
-                    color: #{color_1};
-                    background-color: #{color_2};
-                    border: 1px solid #{color_1};
+                    color: #{program.color_1};
+                    background-color: #{program.color_2};
+                    border: 1px solid #{program.color_1};
                 }}
-                """.format(
-                    color_1=program.color_1,
-                    color_2=program.color_2
-                )
+                '''
             )
             #self.indicator_percentage_power.setFont(self.font)
             self.indicator_percentage_power.setAlignment(Qt.AlignCenter)
-            self.indicator_percentage_power.setFixedSize(program.button_width, program.button_height)
+            #self.indicator_percentage_power.setFixedSize(program.button_width, program.button_height)
+            self.indicator_percentage_power.setFixedSize(program.button_width, 20)
         self.indicator_clock.setStyleSheet(
-            """
+            f'''
             QLabel{{
-                color: #{color_1};
-                background-color: #{color_2};
-                border: 1px solid #{color_1};
+                color: #{program.color_1};
+                background-color: #{program.color_2};
+                border: 1px solid #{program.color_1};
             }}
-            """.format(
-                color_1=program.color_1,
-                color_2=program.color_2
-            )
+            '''
         )
         self.indicator_clock.setFont(self.font)
         self.indicator_clock.setAlignment(Qt.AlignCenter)
-        self.indicator_clock.setFixedSize(program.button_width, program.button_height)
+        #self.indicator_clock.setFixedSize(program.button_width, program.button_height)
+        self.indicator_clock.setFixedSize(program.button_width, 60)
+        # power thread
+        if program.power:
+            thread_percentage_power = threading.Thread(target=self.percentage_power)
+            thread_percentage_power.daemon = True
+            thread_percentage_power.start()
+        # clock thread
+        thread_clock = threading.Thread(target=self.clock)
+        thread_clock.daemon = True
+        thread_clock.start()
         self.setWindowTitle(name)
+        # Position and decorate the window.
         if program.set_always_on_top is True:
             self.setWindowFlags(Qt.WindowStaysOnTopHint)
         if program.window_frame is False:
             self.setWindowFlags(Qt.FramelessWindowHint)
         if program.set_position is True:
             self.move(0, 0)
-        if program.power:
-            thread_percentage_power = threading.Thread(target=self.percentage_power)
-            thread_percentage_power.daemon = True
-            thread_percentage_power.start()
-        thread_clock = threading.Thread(target = self.clock)
-        thread_clock.daemon = True
-        thread_clock.start()
         self.show()
+        # Reserve space for the window.
+        program.window_identification = self.winId().__int__()
+        program.window_width = self.width()
+        program.window_height = self.height()
+        log.info(f'window identification: {program.window_identification}')
+        #try:
+        window = Window(program.window_identification)
+        #window.reserve_space(program.window_width, 0, 0, 0)
+        #except:
+        #    log.info('could not reserve space for interface')
 
-    def percentage_power(
-        self
-        ):
+    def percentage_power(self):
         while True:
-            percentage_power = shijian.percentage_power()
-            if not percentage_power:
-                percentage_power = "100 %"
+            percentage_power = str(round(psutil.sensors_battery().percent, 2)) + ' %'
             self.indicator_percentage_power.setText(percentage_power)
             time.sleep(30)
 
-    def clock(
-        self
-        ):
+    def clock(self):
         while True:
-            self.indicator_clock.setText(shijian.time_UTC(style="YYYY-MM-DD HH:MM:SS UTC").replace(" ", "\n", 2))
+            self.indicator_clock.setText(datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC').replace(' ', '\n', 2))
             time.sleep(1)
 
-if __name__ == "__main__":
+class Window(object):
+
+    def __init__(self, window_ID):
+        self._display = Display()
+        self._window = self._display.create_resource_object('window', window_ID)
+
+    def reserve_space(
+        self,
+        left   = 0,
+        right  = 0,
+        top    = 0,
+        bottom = 0
+        ):
+        LEFT    = int(left)
+        RIGHT   = int(right)
+        TOP     = int(top)
+        BOTTOM  = int(bottom)
+        print([LEFT, RIGHT, TOP, BOTTOM])
+        self._window.change_property(
+            self._display.intern_atom('_NET_WM_STRUT'),
+            self._display.intern_atom('CARDINAL'),
+            32,
+            [LEFT, RIGHT, TOP, BOTTOM]
+        )
+        self._display.sync()
+
+if __name__ == '__main__':
     options = docopt.docopt(__doc__)
-    if options["--version"]:
+    if options['--version']:
         print(__version__)
         exit()
     main(options)
